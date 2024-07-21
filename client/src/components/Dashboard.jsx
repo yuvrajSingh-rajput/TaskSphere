@@ -1,10 +1,12 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import CircularIndeterminate from './CircularIndeterminate';
 
 function Dashboard() {
-
+  const navigate = useNavigate();
+  const [token, setToken] = useState(JSON.parse(localStorage.getItem("auth")) || "");
   const [stats, setStats] = useState({
     username: '',
     email: '',
@@ -16,9 +18,14 @@ function Dashboard() {
   const [loader, setLoader] = useState(false);
 
   const handleUserStatistics = async () => {
+    let axiosConfig = {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
     try {
       setLoader(true);
-      const response = await axios.get('/profile');
+      const response = await axios.get('/profile', axiosConfig);
       setStats({
         username: response.data.username,
         email: response.data.email,
@@ -35,13 +42,17 @@ function Dashboard() {
 
   useEffect(() => {
     handleUserStatistics();
-  }, []);
+    if(token === ""){
+      navigate("/login");
+      toast.warn("Please login first to access dashboard");
+    }
+  }, [token]);
 
   return (
     <>
       <div className="h-screen flex flex-col items-center">
         {loader ? (
-          <CircularIndeterminate/>
+          <CircularIndeterminate />
         ) : (
           <>
             <div className='text-center bg-blue-500 text-white p-5 rounded-2xl mt-28'>
@@ -70,3 +81,4 @@ function Dashboard() {
 }
 
 export default Dashboard;
+
