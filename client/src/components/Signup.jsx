@@ -1,39 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
-import { useAuth } from '../contexts/Authcontext';
 import CircularIndeterminate from './CircularIndeterminate';
 
 function Signup() {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const [ token, setToken ] = useState(JSON.parse(localStorage.getItem("auth")) || "");
     const [loader, setLoader] = useState(false);
     const [data, setData] = useState({ username: '', email: '', password: '' });
 
     const signupUser = async (e) => {
         e.preventDefault();
         const { username, email, password } = data;
-        try {
-            setLoader(true);
-            const response = await axios.post('/signup', { username, email, password });
-            setLoader(false);
-            if (response.data.error) {
-                toast.error(response.data.error);
-            } else {
-                toast.success('Signup Successful');
-                await login(email, password); // Log in user automatically after signup
-                navigate('/');
+        if(username.length > 0 && email.length > 0 && password.length > 0){
+            try {
+                setLoader(true);
+                const response = await axios.post('/signup', { username, email, password });
+                setLoader(false);
+                toast.success('registered successfully');
+                navigate('/login');
+            } catch (err) {
+                setLoader(false);
+                if (err.response && err.response.data && err.response.data.error) {
+                    toast.error(err.response.data.error);
+                } else {
+                    toast.error('Something went wrong. Please try again.');
+                }
             }
-        } catch (err) {
-            setLoader(false);
-            if (err.response && err.response.data && err.response.data.error) {
-                toast.error(err.response.data.error);
-            } else {
-                toast.error('Something went wrong. Please try again.');
-            }
+        }else{
+            toast.error('please fill all fields');
         }
     };
+
+    useEffect(() => {
+        if(token !== ""){
+          toast.success("You already logged in");
+          navigate("/");
+        }
+      }, []);
 
     return (
         <div className="flex justify-center w-full h-screen items-center">
