@@ -3,29 +3,48 @@ import { MdEmail, MdOutlinePassword } from "react-icons/md";
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import CircularIndeterminate from './CircularIndeterminate';
-import { useAuth } from '../contexts/Authcontext';
+import axios from 'axios';
 
 function Login() {
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuth();
+    const [token, setToken] = useState(JSON.parse(localStorage.getItem("auth")) || "");
     const [loader, setLoader] = useState(false);
     const [data, setData] = useState({ email: '', password: '' });
 
     const loginUser = async (e) => {
         e.preventDefault();
         const { email, password } = data;
-        setLoader(true);
-        await login(email, password);
-        setLoader(false);
-        setData({ email: '', password: '' });
+        if (email.length > 0 && password.length > 0) {
+            const formData = {
+                email,
+                password
+            };
+            try {
+                setLoader(true);
+                const response = await axios.post('/login', formData);
+                setLoader(false);
+                localStorage.setItem('auth', JSON.stringify(response.data.token));
+                toast.success('login successfull');
+                navigate('/');
+            } catch (err) {
+                setLoader(false);
+                console.log(err);
+                toast.error(err.response.data.error);
+                if(err.response.data.error === 'user not found'){
+                    navigate('/signup');
+                }
+            }
+        } else {
+            toast.error('please fill all fields');
+        }
     };
 
     useEffect(() => {
-        if (isAuthenticated) {
-            toast.success("You are already logged in");
-            navigate('/');
+        if (token !== "") {
+            toast.success("You already logged in");
+            navigate("/");
         }
-    }, [isAuthenticated]);
+    }, []);
 
     return (
         <div className="flex justify-center w-full h-screen items-center">
@@ -77,3 +96,4 @@ function Login() {
 }
 
 export default Login;
+
