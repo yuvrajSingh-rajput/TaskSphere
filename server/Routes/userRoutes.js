@@ -9,10 +9,12 @@ router.use(
         origin: 'http://localhost:5173'
     })
 );
-router.get('/about', authenticationMiddleware, handleAbout);
-router.get('/', authenticationMiddleware, showAllTodos);
-router.post('/', authenticationMiddleware, createTodo); // Add middleware here
-router.delete('/:id', authenticationMiddleware, deleteTodo); // Changed from get to delete and added middleware
-router.get('/profile', authenticationMiddleware, handleUserStats);
+
+router.route('/').get(authenticationMiddleware, showAllTodos);
+router.route('/').post(authenticationMiddleware, createTodo);
+
+router.route('/about').get(authenticationMiddleware, handleAbout);
+router.route('/:id', authenticationMiddleware, deleteTodo);
+router.route('/profile').get(authenticationMiddleware, handleUserStats);
 
 module.exports = router;
