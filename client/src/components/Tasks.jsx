@@ -6,12 +6,18 @@ import toast from 'react-hot-toast';
 function Tasks() {
     const [tasks, setTasks] = useState([]);
     const [loader, setLoader] = useState(false);
+    const [token, setToken] = useState(JSON.parse(localStorage.getItem("auth")) || "");
     const [task, setTask] = useState('');
 
     const fetchAllTasks = async () => {
+        let axiosConfig = {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          };
         try {
             setLoader(true);
-            const response = await axios.get('/');
+            const response = await axios.get('/', axiosConfig);
             setTasks(response.data.tasks);
         } catch (err) {
             toast.error(err.response.data.error);
@@ -99,3 +105,4 @@ function Tasks() {
 }
 
 export default Tasks;
+
